@@ -1,13 +1,9 @@
 const {ComponentDialog, WaterfallDialog, DialogSet, DialogTurnStatus, Dialog, ConfirmPrompt, ChoicePrompt, DateTimePrompt, NumberPrompt, TextPrompt} = require("botbuilder-dialogs");
 const { CardFactory } = require('botbuilder');
 const Cart = require("../model/cart");
-const CHOICE_PROMPT    = 'CHOICE_PROMPT';
-const CONFIRM_PROMPT   = 'CONFIRM_PROMPT';
-const TEXT_PROMPT      = 'TEXT_PROMPT';
-const NUMBER_PROMPT    = 'NUMBER_PROMPT';
-const DATETIME_PROMPT  = 'DATETIME_PROMPT';
-const cartInfoWF1 = 'productCatalogWF1';
-const cartInfo = "productCatalog";
+const cartInfoWF1 = 'cartInfoWF1';
+const cartInfo = "cartInfo";
+const User = require("../model/user");
 var endDialog = '';
 
 class CartInfo extends ComponentDialog {
@@ -18,23 +14,13 @@ class CartInfo extends ComponentDialog {
         
         this.addDialog(new WaterfallDialog(cartInfoWF1,[
             this.sendCart.bind(this),
-            this.shown.bind(this)
+            this.shown.bind(this),
+            this.response.bind(this)
         ]));
         this.intialDialogId = cartInfoWF1;
     }
 
-    async run(context, accessor){
-        
-            
-        const dialogSet = new DialogSet(accessor);
-        dialogSet.add(this);
-        const dialogContext = await dialogSet.createContext(context);
-        const results = await dialogContext.continueDialog();
-        if(results && results.status === DialogTurnStatus.empty){
-            await dialogContext.beginDialog(this.id);
-        }
-    }
-
+    
     async sendCart(step){
         endDialog = false;
         try{
@@ -139,17 +125,113 @@ class CartInfo extends ComponentDialog {
     }
 
     async shown(step){
-        if(step.context.activity.value.name){
-
+        if(step.context.activity.value.name === "Yes"){
+            await step.context.sendActivity({
+                attachments: [CardFactory.adaptiveCard({
+                    "type": "AdaptiveCard",
+                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                    "version": "1.0",
+                    "body": [
+                        {
+                            "type": "TextBlock",
+                            "id": "userDetail",
+                            "wrap": true,
+                            "text": "Fill your Details",
+                            "horizontalAlignment": "Center",
+                            "color": "Accent",
+                            "size": "Medium",
+                            "fontType": "Default",
+                            "style": "heading",
+                            "weight": "Bolder",
+                            "spacing": "Small"
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "username",
+                            "placeholder": "Your Name"
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "useremail",
+                            "placeholder": "Email Id",
+                            "style": "Email"
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "usermob",
+                            "placeholder": "Mobile Number"
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "useradd",
+                            "placeholder": "Adress"
+                        },
+                        {
+                            "type": "Input.Text",
+                            "id": "userzip",
+                            "placeholder": "Zip Code"
+                        },
+                        {
+                            "type": "ActionSet",
+                            "actions": [
+                                {
+                                    "type": "Action.Submit",
+                                    "title": "Buy Now",
+                                    "style": "positive",
+                                    "id": "userorder"
+                                }
+                            ]
+                        }
+                    ]
+                })]
+            });
+            return Dialog.EndOfTurn;
         }else{
             endialog = true;
             return await step.endDialog();
         }
     }
 
-    async isDialogComplete(){
-        return endDialog;
+    async response(step){
+        console.log(step.context);
+        const newUser = new User({
+            
+            name:   step.context.activity.value.username,
+            email:   step.context.activity.value.useremail,
+            mobile: step.context.activity.value.usermob,
+            address: step.context.activity.value.useradd,
+            zip: step.context.activity.value.userzip
+        });
+        await newUser.save();
+        await step.context.sendActivity("You order will be delievered.");
+        await step.context.sendActivity({
+            attachments: [
+                CardFactory.heroCard(
+                    'These are the suggestions',
+                    null,
+                    CardFactory.actions([
+                        {
+                            type: 'imBack',
+                            title: 'Product Catalog',
+                            value: 'Product Catalog'
+                        },
+                        {
+                            type: 'imBack',
+                            title: 'Cart',
+                            value:'Cart'
+                        },
+                        {
+                            type: 'imBack',
+                            title: 'FAQs',
+                            value:'FAQs'
+                        }
+                    ])
+                )
+            ]
+        })
+        return await step.endDialog();
     }
+    
 
     
     

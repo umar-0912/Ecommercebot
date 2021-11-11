@@ -1,4 +1,106 @@
-const { ComponentDialog, WaterfallDialog, DialogSet, DialogTurnStatus, Dialog } = require('botbuilder-dialogs');
+const {
+    ComponentDialog,
+    WaterfallDialog,
+    DialogSet,
+    DialogTurnStatus,
+  } = require("botbuilder-dialogs");
+ 
+  
+  //Dialogs
+  const { CartInfo } = require("./cartInfo");
+  const { ProductCatalog } = require("./productCatalog");
+  
+  //Constants
+  const rootDialog = "rootDialog";
+  const productCatalog = "productCatalog";
+  const cartInfo = "cartInfo";
+  const rootDialogWf1 = "rootDialogWf1";
+  
+  class RootDialog extends ComponentDialog {
+    constructor(conversationState) {
+      super(rootDialog);
+  
+      if (!conversationState) throw new Error("Conversation State is not found");
+      this.conversationState = conversationState;
+      this.previousIntent = this.conversationState.createProperty("previousIntent");
+      this.conversationData = this.conversationState.createProperty("conversationData");
+  
+      this.addDialog(
+        new WaterfallDialog(rootDialogWf1, [this.routeMessages.bind(this)])
+      );
+  
+  
+      this.addDialog(new ProductCatalog(conversationState));
+      this.addDialog(new CartInfo(conversationState));
+  
+      this.initialDialogId = rootDialogWf1;
+    }
+  
+    async routeMessages(stepContext) {
+        try {
+            
+            var currentIntent = '';
+            const previousIntent = await this.previousIntent.get(stepContext.context,{});
+            const conversationData = await this.conversationData.get(stepContext.context,{});
+            
+            if(previousIntent.intentName && conversationData.endDialog === false){
+                currentIntent = previousIntent.intentName;
+            }else if(previousIntent.intentName && conversationData.endDialog === true){
+                currentIntent = stepContext.context.activity.text;   
+            }else{
+                currentIntent = stepContext.context.activity.text;
+                await this.previousIntent.set(stepContext.context,{intentName: stepContext.context.activity.text});
+            }
+            
+
+            switch (currentIntent) {
+            case "Product Catalog":
+                return await stepContext.beginDialog(productCatalog);
+    
+            case "Cart":
+                return await stepContext.beginDialog(cartInfo);
+    
+            default:
+                stepContext.context.sendActivity(
+                "Sorry, I am still learning can you please refresh your query"
+                );
+                
+            }
+            return await stepContext.endDialog();
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+  
+    async run(context, accessor) {
+      try {
+        const dialogSet = new DialogSet(accessor);
+        dialogSet.add(this);
+        const dialogContext = await dialogSet.createContext(context);
+        const results = await dialogContext.continueDialog();
+        if (results && results.status === DialogTurnStatus.empty) {
+          await dialogContext.beginDialog(this.id);
+        } else {
+          console.log("Dialog Stack is Empty");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
+  
+  module.exports.RootDialog = RootDialog;
+  
+
+
+
+
+
+
+
+//////////////////////////////////////////
+/*const { ComponentDialog, WaterfallDialog, DialogSet, DialogTurnStatus, Dialog } = require('botbuilder-dialogs');
 const { CardFactory } = require('botbuilder');
 const Product = require("../model/product");
 const Cart = require("../model/cart");
@@ -15,10 +117,7 @@ class RootDialog extends ComponentDialog {
         super(rootDialog);
         if(!conversationState) throw new Error ("Con state require");
         this.conversationState = conversationState;
-        this.previousIntent = this.conversationState.createProperty("previousIntent");
-        this.conversationData = this.conversationState.createProperty("conversationData");
-        this.obj = new ProductCatalog(conversationState);
-        this.addDialog(this.obj);
+        this.addDialog(new ProductCatalog(conversationState));
         this.addDialog(new CartInfo(conversationState));
         this.addDialog(new WaterfallDialog(rootDialogWF1,[
             this.step1.bind(this),
@@ -39,66 +138,54 @@ class RootDialog extends ComponentDialog {
     }
 
     async step1(step){
-        var currentIntent = '';
-        const previousIntent = await this.previousIntent.get(context,{});
-        const conversationData = await this.conversationData.get(context,{});
-
-        if(previousIntent.intentName && conversationData.endDialog === false){
-            currentIntent = previousIntent.intentName;
-        }else if(previousIntent.intentName && conversationData.endDialog === true){
-            currentIntent = context.activity.text;   
-        }else{
-            currentIntent = context.activity.text;
-            await this.previousIntent.set(context,{intentName: context.activity.text});
-        }
-        console.log("hi");
+        console.log("hello there");
         
-        switch(currentIntent){
+        switch(step.context.actvity.text){
             case 'Product Catalog':
             
-            await this.conversationData.set(context, {endDialog: false})
             
-            await step.run(this.obj);
             
-            conversationData.endDialog =  this.obj.isDialogComplete();
+            await step.beginDialog(productCatalog);
+            
+            
 
             
-            if(conversationData.endDialog){
-                await this.previousIntent.set(context,{intentName: null});
-                await context.sendActivity({
-                    attachments: [
-                        CardFactory.heroCard(
-                            'These are the suggestions',
-                            null,
-                            CardFactory.actions([
-                                {
-                                    type: 'imBack',
-                                    title: 'Product Catalog',
-                                    value: 'Product Catalog'
-                                },
-                                {
-                                    type: 'imBack',
-                                    title: 'Cart',
-                                    value:'Cart'
-                                },
-                                {
-                                    type: 'imBack',
-                                    title: 'FAQs',
-                                    value:'FAQs'
-                                }
-                            ])
-                        )
-                    ]
-                })
-            }
+            // if(conversationData.endDialog){
+            //     await this.previousIntent.set(step.context,{intentName: null});
+            //     await step.context.sendActivity({
+            //         attachments: [
+            //             CardFactory.heroCard(
+            //                 'These are the suggestions',
+            //                 null,
+            //                 CardFactory.actions([
+            //                     {
+            //                         type: 'imBack',
+            //                         title: 'Product Catalog',
+            //                         value: 'Product Catalog'
+            //                     },
+            //                     {
+            //                         type: 'imBack',
+            //                         title: 'Cart',
+            //                         value:'Cart'
+            //                     },
+            //                     {
+            //                         type: 'imBack',
+            //                         title: 'FAQs',
+            //                         value:'FAQs'
+            //                     }
+            //                 ])
+            //             )
+            //         ]
+            //     })
+            // }
             break;
             case 'Cart':   
-            await this.conversationData.set(context, {endDialog: false})
-            await this.dialog1.run(context, this.accessor);
+            await this.conversationData.set(step.context, {endDialog: false})
+            await this.dialog1.run(step.context, this.accessor);
             conversationData.endDialog = await this.dialog.isDialogComplete();
             if(conversationData.endDialog){
-                await this.previousIntent.set(context,{intentName: null});
-                await context.sendActivity({
+                await this.previousIntent.set(step.context,{intentName: null});
+                await step.context.sendActivity({
                     attachments: [
                         CardFactory.heroCard(
                             'These are the suggestions',
@@ -133,4 +220,4 @@ class RootDialog extends ComponentDialog {
     }
 }
 
-module.exports.RootDialog = RootDialog;
+module.exports.RootDialog = RootDialog;*/

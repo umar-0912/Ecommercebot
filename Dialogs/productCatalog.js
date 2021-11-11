@@ -19,17 +19,6 @@ class ProductCatalog extends ComponentDialog {
         this.intialDialogId = productCatalogWF1;
     }
 
-    async run(context, accessor){
-        
-            
-        const dialogSet = new DialogSet(accessor);
-        dialogSet.add(this);
-        const dialogContext = await dialogSet.createContext(context);
-        const results = await dialogContext.continueDialog();
-        if(results && results.status === DialogTurnStatus.empty){
-            await dialogContext.beginDialog(this.id);
-        }
-    }
 
     async sendProductList(step){
         endDialog = false;
@@ -89,23 +78,9 @@ class ProductCatalog extends ComponentDialog {
                                         ]
                                     },
                                     {
-                                        "type": "Input.ChoiceSet",
-                                        "choices": [
-                                            {
-                                                "title": "1",
-                                                "value": "1"
-                                            },
-                                            {
-                                                "title": "2",
-                                                "value": "2"
-                                            },
-                                            {
-                                                "title": "3",
-                                                "value": "3"
-                                            }
-                                        ],
-                                        "id": `ates${i}`,
-                                        "placeholder": "1"
+                                        "type": "Input.Number",
+                                        "id": "quantity",
+                                        "placeholder": "Quantity"
                                     },
                                     {
                                         "type": "ActionSet",
@@ -138,20 +113,49 @@ class ProductCatalog extends ComponentDialog {
     }
 
     async shown(step){
-        const newItem = new Cart({
-            
-            name:   step.context.activity.value.name,
-            price: step.context.activity.value.price,
-            url: step.context.activity.value.image
-        });
-        await newItem.save();
+        const name = step.context.activity.value.name;
+        const item = await Cart.findOne({ name });
+        if(item){
+            item.quantity = step.context.activity.value.quantity
+            await item.save();
+        }else{
+            const newItem = new Cart({
+                
+                name:   step.context.activity.value.name,
+                price: step.context.activity.value.price,
+                url: step.context.activity.value.image,
+                quantity: step.context.activity.value.quantity
+            });
+            await newItem.save();
+        }
         
         endDialog = true;
+        await step.context.sendActivity({
+            attachments: [
+                CardFactory.heroCard(
+                    'These are the suggestions',
+                    null,
+                    CardFactory.actions([
+                        {
+                            type: 'imBack',
+                            title: 'Product Catalog',
+                            value: 'Product Catalog'
+                        },
+                        {
+                            type: 'imBack',
+                            title: 'Cart',
+                            value:'Cart'
+                        },
+                        {
+                            type: 'imBack',
+                            title: 'FAQs',
+                            value:'FAQs'
+                        }
+                    ])
+                )
+            ]
+        })
         return await step.endDialog();
-    }
-
-    isDialogComplete(){
-        return endDialog;
     }
 
     

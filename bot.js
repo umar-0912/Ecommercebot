@@ -8,117 +8,22 @@ const Cart = require("./model/cart");
 
 
 class EchoBot extends ActivityHandler {
-    constructor(conversationState, dialog, dialog1) {
+    constructor(conversationState, dialog) {
         super();
 
         if(!conversationState) throw new Error("Con required");
 
         this.conversationState = conversationState;
         this.dialog = dialog;
-        this.dialog1 = dialog1;
         this.accessor = this.conversationState.createProperty('DialogAccessor');
-        this.previousIntent = this.conversationState.createProperty("previousIntent");
-        this.conversationData = this.conversationState.createProperty("conversationData");
         // See https://aka.ms/abou0t-bot-activity-message to learn more about the message and other activity types.
         this.onMessage(async (context, next) => {
-            var currentIntent = '';
-            const previousIntent = await this.previousIntent.get(context,{});
-            const conversationData = await this.conversationData.get(context,{});
-
-            if(previousIntent.intentName && conversationData.endDialog === false){
-                currentIntent = previousIntent.intentName;
-            }else if(previousIntent.intentName && conversationData.endDialog === true){
-                currentIntent = context.activity.text;   
-            }else{
-                currentIntent = context.activity.text;
-                await this.previousIntent.set(context,{intentName: context.activity.text});
-            }
             
-            
-            switch(currentIntent){
-                case 'Product Catalog':
-                
-                await this.conversationData.set(context, {endDialog: false})
-                
-                await this.dialog.run(context, this.accessor)
-                
-                conversationData.endDialog =  await this.dialog.isDialogComplete();
-
-                
-                if(conversationData.endDialog){
-                    await this.previousIntent.set(context,{intentName: null});
-                    await context.sendActivity({
-                        attachments: [
-                            CardFactory.heroCard(
-                                'These are the suggestions',
-                                null,
-                                CardFactory.actions([
-                                    {
-                                        type: 'imBack',
-                                        title: 'Product Catalog',
-                                        value: 'Product Catalog'
-                                    },
-                                    {
-                                        type: 'imBack',
-                                        title: 'Cart',
-                                        value:'Cart'
-                                    },
-                                    {
-                                        type: 'imBack',
-                                        title: 'FAQs',
-                                        value:'FAQs'
-                                    }
-                                ])
-                            )
-                        ]
-                    })
-                }
-                break;
-                case 'Cart':   
-                await this.conversationData.set(context, {endDialog: false})
-                await this.dialog1.run(context, this.accessor);
-                conversationData.endDialog = await this.dialog1.isDialogComplete();
-                if(conversationData.endDialog){
-                    await this.previousIntent.set(context,{intentName: null});
-                    await context.sendActivity({
-                        attachments: [
-                            CardFactory.heroCard(
-                                'These are the suggestions',
-                                null,
-                                CardFactory.actions([
-                                    {
-                                        type: 'imBack',
-                                        title: 'Product Catalog',
-                                        value: 'Product Catalog'
-                                    },
-                                    {
-                                        type: 'imBack',
-                                        title: 'Cart',
-                                        value:'Cart'
-                                    },
-                                    {
-                                        type: 'imBack',
-                                        title: 'FAQs',
-                                        value:'FAQs'
-                                    }
-                                ])
-                            )
-                        ]
-                    })
-                }
-                break;
-                default:
-                    console.log("Did not match Make Reservation case");
-                    break;
-            }
-
+            await this.dialog.run(context, this.accessor);
             await next();
         });
 
-        this.onDialog(async(context,next) => {
-            await this.conversationState.saveChanges(context, false);
-            await next();
-        });
+        
 
         this.onMembersAdded(async (context, next) => {
             const membersAdded = context.activity.membersAdded;
@@ -172,13 +77,13 @@ class EchoBot extends ActivityHandler {
             // By calling next() you ensure that the next BotHandler is run.
             await next();
         });
-
+        this.onDialog(async(context,next) => {
+            await this.conversationState.saveChanges(context, false);
+            await next();
+        });
         
     }
-    async showCart(turnContext){
-        const itemList = await Cart.find();
-        await turnContext.sendActivity("Your cart has been logged");
-    }
+    
 }
 
 module.exports.EchoBot = EchoBot;

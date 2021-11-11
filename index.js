@@ -4,8 +4,7 @@
 const path = require('path');
 const mongoose = require("mongoose");
 const Product = require("./model/product");
-const {ProductCatalog} = require('./Dialogs/productCatalog');
-const {CartInfo} = require('./Dialogs/cartInfo');
+const {RootDialog} = require('./Dialogs/rootDialog');
 const dotenv = require('dotenv');
 // Import required bot configuration.
 const ENV_FILE = path.join(__dirname, '.env');
@@ -20,7 +19,6 @@ const { BotFrameworkAdapter, MemoryStorage, ConversationState } = require('botbu
 // This bot's main dialog.
 const { EchoBot } = require('./bot');
 const product = require('./model/product');
-//const { ProductCatalog } = require('./Dialogs/productCatalog');
 
 const connectDB = async() => {
     try{
@@ -81,9 +79,8 @@ adapter.onTurnError = onTurnErrorHandler;
 
 // Create the main dialog.
 
-const dialog = new ProductCatalog(conversationState);
-const dialog1 = new CartInfo(conversationState);
-const myBot = new EchoBot(conversationState, dialog, dialog1);
+const dialog = new RootDialog(conversationState);
+const myBot = new EchoBot(conversationState, dialog);
 // Listen for incoming requests.
 server.post('/api/messages', (req, res) => {
     adapter.processActivity(req, res, async (context) => {
