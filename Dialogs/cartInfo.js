@@ -125,111 +125,194 @@ class CartInfo extends ComponentDialog {
     }
 
     async shown(step){
-        if(step.context.activity.value.name === "Yes"){
-            await step.context.sendActivity({
-                attachments: [CardFactory.adaptiveCard({
-                    "type": "AdaptiveCard",
-                    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                    "version": "1.0",
-                    "body": [
-                        {
-                            "type": "TextBlock",
-                            "id": "userDetail",
-                            "wrap": true,
-                            "text": "Fill your Details",
-                            "horizontalAlignment": "Center",
-                            "color": "Accent",
-                            "size": "Medium",
-                            "fontType": "Default",
-                            "style": "heading",
-                            "weight": "Bolder",
-                            "spacing": "Small"
-                        },
-                        {
-                            "type": "Input.Text",
-                            "id": "username",
-                            "placeholder": "Your Name"
-                        },
-                        {
-                            "type": "Input.Text",
-                            "id": "useremail",
-                            "placeholder": "Email Id",
-                            "style": "Email"
-                        },
-                        {
-                            "type": "Input.Text",
-                            "id": "usermob",
-                            "placeholder": "Mobile Number"
-                        },
-                        {
-                            "type": "Input.Text",
-                            "id": "useradd",
-                            "placeholder": "Adress"
-                        },
-                        {
-                            "type": "Input.Text",
-                            "id": "userzip",
-                            "placeholder": "Zip Code"
-                        },
-                        {
-                            "type": "ActionSet",
-                            "actions": [
+        if(step.context.activity.value){
+            if(step.context.activity.value.name === "Yes"){
+                await step.context.sendActivity({
+                    attachments: [CardFactory.adaptiveCard({
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.0",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "id": "userDetail",
+                                "wrap": true,
+                                "text": "Fill your Details",
+                                "horizontalAlignment": "Center",
+                                "color": "Accent",
+                                "size": "Medium",
+                                "fontType": "Default",
+                                "style": "heading",
+                                "weight": "Bolder",
+                                "spacing": "Small"
+                            },
+                            {
+                                "type": "Input.Text",
+                                "id": "username",
+                                "placeholder": "Your Name"
+                            },
+                            {
+                                "type": "Input.Text",
+                                "id": "useremail",
+                                "placeholder": "Email Id",
+                                "style": "Email"
+                            },
+                            {
+                                "type": "Input.Text",
+                                "id": "usermob",
+                                "placeholder": "Mobile Number"
+                            },
+                            {
+                                "type": "Input.Text",
+                                "id": "useradd",
+                                "placeholder": "Adress"
+                            },
+                            {
+                                "type": "Input.Text",
+                                "id": "userzip",
+                                "placeholder": "Zip Code"
+                            },
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Buy Now",
+                                        "style": "positive",
+                                        "id": "userorder"
+                                    }
+                                ]
+                            }
+                        ]
+                    })]
+                });
+                return Dialog.EndOfTurn;
+            }else{
+                await step.context.sendActivity({
+                    attachments: [
+                        CardFactory.heroCard(
+                            'These are the suggestions',
+                            null,
+                            CardFactory.actions([
                                 {
-                                    "type": "Action.Submit",
-                                    "title": "Buy Now",
-                                    "style": "positive",
-                                    "id": "userorder"
+                                    type: 'imBack',
+                                    title: 'Product Catalog',
+                                    value: 'Product Catalog'
+                                },
+                                {
+                                    type: 'imBack',
+                                    title: 'Cart',
+                                    value:'Cart'
+                                },
+                                {
+                                    type: 'imBack',
+                                    title: 'FAQs',
+                                    value:'FAQs'
                                 }
-                            ]
-                        }
+                            ])
+                        )
                     ]
-                })]
-            });
-            return Dialog.EndOfTurn;
+                })
+                return await step.endDialog();
+            }
         }else{
-            endialog = true;
+            await step.context.sendActivity({
+                attachments: [
+                    CardFactory.heroCard(
+                        'These are the suggestions',
+                        null,
+                        CardFactory.actions([
+                            {
+                                type: 'imBack',
+                                title: 'Product Catalog',
+                                value: 'Product Catalog'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'Cart',
+                                value:'Cart'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'FAQs',
+                                value:'FAQs'
+                            }
+                        ])
+                    )
+                ]
+            });
             return await step.endDialog();
         }
+        
     }
 
     async response(step){
-        console.log(step.context);
-        const newUser = new User({
+        if(step.context.activity.value){
+            const newUser = new User({
             
-            name:   step.context.activity.value.username,
-            email:   step.context.activity.value.useremail,
-            mobile: step.context.activity.value.usermob,
-            address: step.context.activity.value.useradd,
-            zip: step.context.activity.value.userzip
-        });
-        await newUser.save();
-        await step.context.sendActivity("You order will be delievered.");
-        await step.context.sendActivity({
-            attachments: [
-                CardFactory.heroCard(
-                    'These are the suggestions',
-                    null,
-                    CardFactory.actions([
-                        {
-                            type: 'imBack',
-                            title: 'Product Catalog',
-                            value: 'Product Catalog'
-                        },
-                        {
-                            type: 'imBack',
-                            title: 'Cart',
-                            value:'Cart'
-                        },
-                        {
-                            type: 'imBack',
-                            title: 'FAQs',
-                            value:'FAQs'
-                        }
-                    ])
-                )
-            ]
-        })
+                name:   step.context.activity.value.username,
+                email:   step.context.activity.value.useremail,
+                mobile: step.context.activity.value.usermob,
+                address: step.context.activity.value.useradd,
+                zip: step.context.activity.value.userzip
+            });
+            await newUser.save();
+            await step.context.sendActivity("You order will be delievered.");
+            await step.context.sendActivity({
+                attachments: [
+                    CardFactory.heroCard(
+                        'These are the suggestions',
+                        null,
+                        CardFactory.actions([
+                            {
+                                type: 'imBack',
+                                title: 'Product Catalog',
+                                value: 'Product Catalog'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'Cart',
+                                value:'Cart'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'FAQs',
+                                value:'FAQs'
+                            }
+                        ])
+                    )
+                ]
+            })
+            
+        }else{
+            await step.context.sendActivity({
+                attachments: [
+                    CardFactory.heroCard(
+                        'These are the suggestions',
+                        null,
+                        CardFactory.actions([
+                            {
+                                type: 'imBack',
+                                title: 'Product Catalog',
+                                value: 'Product Catalog'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'Cart',
+                                value:'Cart'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'FAQs',
+                                value:'FAQs'
+                            }
+                        ])
+                    )
+                ]
+            })
+        }
         return await step.endDialog();
+        
     }
     
 

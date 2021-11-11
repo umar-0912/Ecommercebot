@@ -14,7 +14,8 @@ class ProductCatalog extends ComponentDialog {
         this.conversationState = conversationState;
         this.addDialog(new WaterfallDialog(productCatalogWF1,[
             this.sendProductList.bind(this),
-            this.shown.bind(this)
+            this.shown.bind(this),
+            this.final.bind(this)
         ]));
         this.intialDialogId = productCatalogWF1;
     }
@@ -87,6 +88,7 @@ class ProductCatalog extends ComponentDialog {
                                         "actions": [
                                             {
                                                 "type": "Action.Submit",
+
                                                 "title": "Add to cart",
                                                 "data": {
                                                     "name":prod.name||" ",
@@ -113,51 +115,189 @@ class ProductCatalog extends ComponentDialog {
     }
 
     async shown(step){
-        const name = step.context.activity.value.name;
-        const item = await Cart.findOne({ name });
-        if(item){
-            item.quantity = step.context.activity.value.quantity
-            await item.save();
+        if(step.context.activity.value){
+            const name = step.context.activity.value.name;
+            const item = await Cart.findOne({ name });
+            if(item){
+                await step.context.sendActivity("Alert! Your cart already has this item please choose from bell given option.");
+                await step.context.sendActivity({
+                    attachments: [CardFactory.adaptiveCard({
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.0",
+                        "body": [
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Change Previous Quantity",
+                                        "id": "change",
+                                        "data": {
+                                            "name":"Yes",
+                                            "item": name,
+                                            "quantity":step.context.activity.value.quantity
+                                        }
+                                    }
+                                ]
+                            }, 
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Increase Previous Quantity",
+                                        "id": "increase",
+                                        "data": {
+                                            "name":"No",
+                                            "item": name,
+                                            "quantity":step.context.activity.value.quantity
+                                        }
+                                    }
+                                ]    
+                            }  
+                        ]
+                    })]
+                });
+
+                // item.quantity = step.context.activity.value.quantity
+                // await item.save();
+            }else{
+                const newItem = new Cart({
+                    
+                    name:   step.context.activity.value.name,
+                    price: step.context.activity.value.price,
+                    url: step.context.activity.value.image,
+                    quantity: step.context.activity.value.quantity
+                });
+                await newItem.save();
+                await step.context.sendActivity({
+                    attachments: [
+                        CardFactory.heroCard(
+                            'These are the suggestions',
+                            null,
+                            CardFactory.actions([
+                                {
+                                    type: 'imBack',
+                                    title: 'Product Catalog',
+                                    value: 'Product Catalog'
+                                },
+                                {
+                                    type: 'imBack',
+                                    title: 'Cart',
+                                    value:'Cart'
+                                },
+                                {
+                                    type: 'imBack',
+                                    title: 'FAQs',
+                                    value:'FAQs'
+                                }
+                            ])
+                        )
+                    ]
+                })
+                await step.endDialog();
+            }    
         }else{
-            const newItem = new Cart({
-                
-                name:   step.context.activity.value.name,
-                price: step.context.activity.value.price,
-                url: step.context.activity.value.image,
-                quantity: step.context.activity.value.quantity
-            });
-            await newItem.save();
+            await step.context.sendActivity({
+                attachments: [
+                    CardFactory.heroCard(
+                        'These are the suggestions',
+                        null,
+                        CardFactory.actions([
+                            {
+                                type: 'imBack',
+                                title: 'Product Catalog',
+                                value: 'Product Catalog'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'Cart',
+                                value:'Cart'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'FAQs',
+                                value:'FAQs'
+                            }
+                        ])
+                    )
+                ]
+            })
+            return await step.endDialog();
         }
         
-        endDialog = true;
-        await step.context.sendActivity({
-            attachments: [
-                CardFactory.heroCard(
-                    'These are the suggestions',
-                    null,
-                    CardFactory.actions([
-                        {
-                            type: 'imBack',
-                            title: 'Product Catalog',
-                            value: 'Product Catalog'
-                        },
-                        {
-                            type: 'imBack',
-                            title: 'Cart',
-                            value:'Cart'
-                        },
-                        {
-                            type: 'imBack',
-                            title: 'FAQs',
-                            value:'FAQs'
-                        }
-                    ])
-                )
-            ]
-        })
-        return await step.endDialog();
+     
     }
 
+    async final(step){
+        
+        if(step.context.activity.value){
+            const itemname = step.context.activity.value.item;
+            const item = await Cart.findOne({ itemname });
+            if(step.context.activity.value.name === "Yes"){
+                item.quantity = step.context.activity.value.quantity
+                await item.save();
+            }else{
+                item.quantity = parseInt(item.quantity) + parseInt(step.context.activity.value.quantity)
+                await item.save();
+            }
+            await step.context.sendActivity({
+                attachments: [
+                    CardFactory.heroCard(
+                        'These are the suggestions',
+                        null,
+                        CardFactory.actions([
+                            {
+                                type: 'imBack',
+                                title: 'Product Catalog',
+                                value: 'Product Catalog'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'Cart',
+                                value:'Cart'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'FAQs',
+                                value:'FAQs'
+                            }
+                        ])
+                    )
+                ]
+            })
+            return await step.endDialog();
+        }else{
+            await step.context.sendActivity({
+                attachments: [
+                    CardFactory.heroCard(
+                        'These are the suggestions',
+                        null,
+                        CardFactory.actions([
+                            {
+                                type: 'imBack',
+                                title: 'Product Catalog',
+                                value: 'Product Catalog'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'Cart',
+                                value:'Cart'
+                            },
+                            {
+                                type: 'imBack',
+                                title: 'FAQs',
+                                value:'FAQs'
+                            }
+                        ])
+                    )
+                ]
+            })
+            return await step.endDialog();
+        }
+        
+    }
     
     
 }

@@ -51,6 +51,8 @@ const {
                 currentIntent = stepContext.context.activity.text;
                 await this.previousIntent.set(stepContext.context,{intentName: stepContext.context.activity.text});
             }
+
+            console.log(currentIntent);
             
 
             switch (currentIntent) {
