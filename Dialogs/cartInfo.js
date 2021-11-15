@@ -32,49 +32,78 @@ class CartInfo extends ComponentDialog {
             
                     await step.context.sendActivity({
                         attachments: [CardFactory.adaptiveCard({
-                            "type": "AdaptiveCard",
-                            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                            "version": "1.3",
-                            "body": [
-                                {
-                                    "type": "ColumnSet",
-                                    "columns": [
-                                        {
-                                            "type": "Column",
-                                            "width": "stretch",
-                                            "items": [
-                                                {
-                                                    "type": "Image",
-                                                    "url": prod.url,
-                                                    "size": "Medium",
-                                                    "horizontalAlignment": "Center"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "type": "Column",
-                                            "width": "stretch",
-                                            "items": [
-                                                {
-                                                    "type": "TextBlock",
-                                                    "wrap": true,
-                                                    "color": "Accent",
-                                                    "text": prod.name,
-                                                    "fontType": "Default",
-                                                    "size": "Large",
-                                                    "horizontalAlignment": "Center"
-                                                },
-                                                {
-                                                    "type": "TextBlock",
-                                                    "wrap": true,
-                                                    "color": "Accent",
-                                                    "text": prod.price,
-                                                    "fontType": "Default",
-                                                    "size": "Large",
-                                                    "horizontalAlignment": "Center"
-                                                }]
-                                        }]
-                                }]
+                            
+                                "type": "AdaptiveCard",
+                                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                                "version": "1.0",
+                                "body": [
+                                    {
+                                        "type": "ColumnSet",
+                                        "columns": [
+                                            {
+                                                "type": "Column",
+                                                "width": "stretch",
+                                                "items": [
+                                                    {
+                                                        "type": "Image",
+                                                        "url": prod.url,
+                                                        "size": "small",
+                                                        "horizontalAlignment": "Center"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "type": "Column",
+                                                "width": "stretch",
+                                                "items": [
+                                                    {
+                                                        "type": "TextBlock",
+                                                        "wrap": true,
+                                                        "text": prod.name,
+                                                        "horizontalAlignment": "Center",
+                                                        "color": "Good",
+                                                        "weight": "Bolder",
+                                                        "size": "Medium"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "type": "Column",
+                                                "width": "stretch",
+                                                "items": [
+                                                    {
+                                                        "type": "TextBlock",
+                                                        "wrap": true,
+                                                        "horizontalAlignment": "Center",
+                                                        "height": "stretch",
+                                                        "size": "Medium",
+                                                        "weight": "Bolder",
+                                                        "color": "Good",
+                                                        "text": `Rs ${prod.price}` ,
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "type": "Column",
+                                                "width": "stretch",
+                                                "items": [
+                                                    {
+                                                        "type": "TextBlock",
+                                                        "text": prod.quantity,
+                                                        "wrap": true,
+                                                        "horizontalAlignment": "Center",
+                                                        "height": "stretch",
+                                                        "color": "Good",
+                                                        "weight": "Bolder",
+                                                        "size": "Medium"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        //"spacing": "Medium"
+                                    }
+                                ]
+                            
                         })]
                     });
                 

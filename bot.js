@@ -37,7 +37,8 @@ class EchoBot extends ActivityHandler {
                             "body": [
                                 {
                                     "type": "Image",
-                                    "url": "https://e7.pngegg.com/pngimages/294/426/png-clipart-chatbot-internet-bot-artificial-intelligence-e-commerce-robot-electronics-text.png"
+                                    "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS712wioLHZH98sDCGzHZVfzu2p96Rr9Lr_1w&usqp=CAU",
+                                    "horizontalAlignment": "Center"
                                 },
                                 {
                                     "type": "TextBlock",

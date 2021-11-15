@@ -174,7 +174,7 @@ class ProductCatalog extends ComponentDialog {
                 await step.context.sendActivity({
                     attachments: [
                         CardFactory.heroCard(
-                            'These are the suggestions',
+                            'Your product has been added to the cart. Please select from the give suggestions.',
                             null,
                             CardFactory.actions([
                                 {
@@ -196,7 +196,7 @@ class ProductCatalog extends ComponentDialog {
                         )
                     ]
                 })
-                await step.endDialog();
+                return await step.endDialog();
             }    
         }else{
             await step.context.sendActivity({
@@ -245,7 +245,7 @@ class ProductCatalog extends ComponentDialog {
             await step.context.sendActivity({
                 attachments: [
                     CardFactory.heroCard(
-                        'These are the suggestions',
+                        'Your item quantity has been changed in the cart. Please select from the given options.',
                         null,
                         CardFactory.actions([
                             {
