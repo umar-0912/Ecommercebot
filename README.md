@@ -1,8 +1,4 @@
-# Ecobot
 
-Demonstrate the core capabilities of the Microsoft Bot Framework
-
-This bot has been created using [Bot Framework](https://dev.botframework.com), it shows how to create a simple bot that accepts input from the user and echoes it back.
 
 ## Prerequisites
 
